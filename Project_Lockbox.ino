@@ -4,6 +4,9 @@
 #define GREEN_LED 2
 #define SERVO_PIN 6
 
+#define TRIGGERPIN 7 // this pin is the pin that sends out pulse 
+#define ECHOPIN 8 //this pin reads the distance. 
+
  #include <Servo.h>
 Servo TheServo; 
 
@@ -55,6 +58,8 @@ Serial.println(F("Scan PICC to see UID, SAK, type, and data blocks..."));
 pinMode(YELLOW_LED, OUTPUT);
   pinMode(RED_LED, OUTPUT);
   pinMode(GREEN_LED, OUTPUT);
+pinMode(TRIGGERPIN, OUTPUT); //send pulse 
+ pinMode(ECHOPIN, INPUT); //reads pulse
 
 
 }
@@ -75,6 +80,45 @@ delay(300);
  delay(300); 
 
 //LED FLASHING 
+
+digitalWrite(TRIGGERPIN, LOW); //turning off first because we want a fresh start
+delayMicroseconds(2); //really fast turn it off then turn it on 
+digitalWrite(TRIGGERPIN, HIGH);
+delayMicroseconds(10); //needs to be 10 because of our sensor
+
+float duration = pulseIn(ECHOPIN, HIGH); //tell us the time from pulse sent to pulse recived. 
+Serial.println(duration); 
+
+// distance = speed*durration 
+
+float speed = 0.034;  //measured in cm/microseconds 
+float distance = speed * duration/2; // distance meaured in cm 
+
+Serial.print("Distance: "); 
+Serial.println(distance);
+delay(100); 
+
+  if (distance > 10) {
+    digitalWrite(GREEN_LED, HIGH);
+     digitalWrite(YELLOW_LED, LOW);
+     digitalWrite(RED_LED, LOW);
+  } 
+  else if (5 < distance < 10) {
+    digitalWrite(GREEN_LED, LOW);
+     digitalWrite(YELLOW_LED, HIGH);
+     digitalWrite(RED_LED, LOW);
+    
+  } 
+  if (distance < 5) {
+      digitalWrite(GREEN_LED, LOW);
+     digitalWrite(YELLOW_LED, LOW);
+     digitalWrite(RED_LED, HIGH);
+    
+  }
+
+  delay(500);
+
+
 
 for (int i = 0; i < 10; i++) {
         digitalWrite(RED_LED, HIGH);
@@ -120,7 +164,10 @@ for (int i = 0; i < 10; i++) {
         delay(100);
     }
 
-   
+
+
+
+     
   
 if ( ! mfrc522.PICC_IsNewCardPresent()) {
 
@@ -159,8 +206,6 @@ mfrc522.PICC_HaltA(); // Halt PICC
 
 void printHex(byte *buffer, byte bufferSize) {
 
-
-
  //Serial.begin("reading?");
 
 for (byte i = 0; i < bufferSize; i++) {
@@ -171,11 +216,18 @@ Serial.print(buffer[i], HEX);
 
 }
 
-
-if()
-
-
 }
+
+
+
+
+
+
+
+
+
+
+
 
 
 
