@@ -55,9 +55,6 @@ mfrc522.PCD_DumpVersionToSerial(); // Show details of PCD - MFRC522 Card Reader 
 
 Serial.println(F("Scan PICC to see UID, SAK, type, and data blocks..."));
 
-pinMode(YELLOW_LED, OUTPUT);
-  pinMode(RED_LED, OUTPUT);
-  pinMode(GREEN_LED, OUTPUT);
 pinMode(TRIGGERPIN, OUTPUT); //send pulse 
  pinMode(ECHOPIN, INPUT); //reads pulse
 
@@ -67,19 +64,24 @@ pinMode(TRIGGERPIN, OUTPUT); //send pulse
 void loop() {
   // put your main code here, to run repeatedly:
 
-delay(300);
-  TheServo.write (360);
-delay(300); 
- TheServo.write (390);
- delay(300); 
- TheServo.write (450);
- delay(300); 
- TheServo.write (480);
- delay(300); 
- TheServo.write (520);
- delay(300); 
+for (int i = 0; i < 3; i++) {
+        digitalWrite(RED_LED, LOW);
+        digitalWrite(GREEN_LED, HIGH);
+        digitalWrite(YELLOW_LED, LOW);
+        delay(250);
+        digitalWrite(RED_LED, LOW);
+        digitalWrite(GREEN_LED, HIGH);
+        digitalWrite(YELLOW_LED, LOW);
+        delay(250);
+        digitalWrite(GREEN_LED, LOW);  
+    delay(250);                   
+    }
 
-//LED FLASHING 
+tone(BUZZER_PIN, 1000); 
+delay(1000); 
+noTone(BUZZER_PIN);
+delay(500);
+
 
 digitalWrite(TRIGGERPIN, LOW); //turning off first because we want a fresh start
 delayMicroseconds(2); //really fast turn it off then turn it on 
@@ -98,29 +100,8 @@ Serial.print("Distance: ");
 Serial.println(distance);
 delay(100); 
 
-  if (distance > 10) {
-    digitalWrite(GREEN_LED, HIGH);
-     digitalWrite(YELLOW_LED, LOW);
-     digitalWrite(RED_LED, LOW);
-  } 
-  else if (5 < distance < 10) {
-    digitalWrite(GREEN_LED, LOW);
-     digitalWrite(YELLOW_LED, HIGH);
-     digitalWrite(RED_LED, LOW);
-    
-  } 
-  if (distance < 5) {
-      digitalWrite(GREEN_LED, LOW);
-     digitalWrite(YELLOW_LED, LOW);
-     digitalWrite(RED_LED, HIGH);
-    
-  }
-
-  delay(500);
-
-
-
-for (int i = 0; i < 10; i++) {
+  if (distance > 6) {
+    for (int i = 0; i < 10; i++) {
         digitalWrite(RED_LED, HIGH);
         digitalWrite(GREEN_LED, LOW);
         digitalWrite(YELLOW_LED, HIGH);
@@ -165,6 +146,17 @@ for (int i = 0; i < 10; i++) {
     }
 
 
+
+  } 
+   if (0 < distance < 6) {
+   for (int i = 0; i < 10; i++) {
+        digitalWrite(RED_LED, HIGH);
+        digitalWrite(YELLOW_LED, LOW);
+        digitalWrite(RED_LED, LOW); // Turn RED LED OFF
+        delay(100);
+    
+    } 
+  } 
 
 
      
@@ -215,6 +207,18 @@ Serial.print(buffer[i] < 0x10 ? " 0" : " ");
 Serial.print(buffer[i], HEX);
 
 }
+
+delay(300);
+  TheServo.write (360);
+delay(300); 
+ TheServo.write (390);
+ delay(300); 
+ TheServo.write (450);
+ delay(300); 
+ TheServo.write (480);
+ delay(300); 
+ TheServo.write (520);
+ delay(300); 
 
 }
 
