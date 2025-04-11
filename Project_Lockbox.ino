@@ -77,10 +77,6 @@ for (int i = 0; i < 3; i++) {
     delay(250);                   
     }
 
-tone(BUZZER_PIN, 1000); 
-delay(1000); 
-noTone(BUZZER_PIN);
-delay(500);
 
 
 digitalWrite(TRIGGERPIN, LOW); //turning off first because we want a fresh start
@@ -111,7 +107,8 @@ delay(100);
         digitalWrite(YELLOW_LED, LOW);
         delay(250);
         digitalWrite(GREEN_LED, LOW);  
-    delay(250);                   
+    delay(250); 
+                 
     }
 
     //LED FLASHING
@@ -143,24 +140,31 @@ delay(100);
         delay(100);
         digitalWrite(RED_LED, LOW); // Turn RED LED OFF
         delay(100);
+
+        TheServo.write (390);
+        delay(300); 
+
+
+ 
     }
-
-
+tone(BUZZER_PIN, 1000); 
+delay(1000); 
+noTone(BUZZER_PIN);
+delay(500);   
 
   } 
    if (0 < distance < 6) {
    for (int i = 0; i < 10; i++) {
-        digitalWrite(RED_LED, HIGH);
+        digitalWrite(GREEN_LED, HIGH);
         digitalWrite(YELLOW_LED, LOW);
-        digitalWrite(RED_LED, LOW); // Turn RED LED OFF
+        digitalWrite(RED_LED,LOW ); // Turn RED LED OFF
         delay(100);
     
     } 
   } 
 
+// Reset the loop if no new card present on the sensor/reader. This saves the entire process when idle.
 
-     
-  
 if ( ! mfrc522.PICC_IsNewCardPresent()) {
 
 return;
@@ -198,6 +202,8 @@ mfrc522.PICC_HaltA(); // Halt PICC
 
 void printHex(byte *buffer, byte bufferSize) {
 
+
+
  //Serial.begin("reading?");
 
 for (byte i = 0; i < bufferSize; i++) {
@@ -207,6 +213,8 @@ Serial.print(buffer[i] < 0x10 ? " 0" : " ");
 Serial.print(buffer[i], HEX);
 
 }
+     
+
 
 delay(300);
   TheServo.write (360);
@@ -218,6 +226,12 @@ delay(300);
  TheServo.write (480);
  delay(300); 
  TheServo.write (520);
+ delay(1000); 
+ TheServo.write (450);
+delay(300);
+TheServo.write (420);
+delay(300); 
+ TheServo.write (390);
  delay(300); 
 
 }
