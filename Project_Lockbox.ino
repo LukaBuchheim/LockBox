@@ -8,64 +8,68 @@
 #define ECHOPIN 8 //this pin reads the distance. 
 
 int const RX_PIN = A2; //not using define because bluetooth doesn't like it. This is RX Pin  //receiving signal
-int const TX_PIN = A4; //sends signal 
+int const TX_PIN = A1; //sends signal 
 #include <SoftwareSerial.h> 
 // My bluetooth ends in AB24C5
 
+//Servo 
 #include <Servo.h>
 #define MICHAEL_PIN 9
-
-#include <SPI.h>
-
-#include <MFRC522.h>
-
 Servo TheServo; 
 
+//RFID set up/libary set up 
+#include <SPI.h>
+#include <MFRC522.h>
 #define RST_PIN 9 // Configurable, see typical pin layout above
-
 #define SS_PIN 10 // Configurable, see typical pin layout above
-
-
-
 MFRC522 mfrc522(SS_PIN, RST_PIN); // Create MFRC522 instance
+byte SpecialCard[4] = {0xB5, 0x30, 0x24, 0x03}; // This is so it knows which UID to look for, i set it to B5 30 24 03 which is my RFID card, this is also for later
+// Compare's scanned card to the "Special card" (for later)
+bool Luka_Card(byte scannedCard[], byte SpecialCard[]) { 
+  for (int i = 0; i < 4; i++) {
+    if (scannedCard[i] != SpecialCard[i]) {
+      return false;
+    }
+  }
+  return true;
+  }
 
+//bluetooth set up 
 SoftwareSerial tooth(TX_PIN, RX_PIN); //make a bluetooth object 
-//set tx and rx pins 
-//tx goes first, then rx 
+
 char davis; 
 
 
 void setup() {
-   Serial.begin(9600); //so we can print if we want. 
- pinMode(YELLOW_LED, OUTPUT);
+   
+  Serial.begin(9600); //so we can print if we want. 
+ 
+ //LED set up 
+  pinMode(YELLOW_LED, OUTPUT);
   pinMode(RED_LED, OUTPUT);
   pinMode(GREEN_LED, OUTPUT); 
   pinMode(BUZZER_PIN, OUTPUT);
    TheServo.attach(SERVO_PIN); //connecting servo object to pin  
-  TheServo.write(90); //set start of propeller to 90 degrees 
+  TheServo.write(200); //set start of propeller to 90 degrees 
 
-  while (!Serial); // Do nothing if no serial port is opened (added for Arduinos based on ATMEGA32U4)
+while (!Serial); // Do nothing if no serial port is opened (added for Arduinos based on ATMEGA32U4)
 
+//RFID set up 
 SPI.begin(); // Init SPI bus
-
 mfrc522.PCD_Init(); // Init MFRC522
 
-delay(4); // Optional delay. Some board do need more time after init to be ready, see Readme
-
-mfrc522.PCD_DumpVersionToSerial(); // Show details of PCD - MFRC522 Card Reader details
-
-Serial.println(F("Scan PICC to see UID, SAK, type, and data blocks..."));
-
+//ultra sonic sensor set up 
 pinMode(TRIGGERPIN, OUTPUT); //send pulse 
  pinMode(ECHOPIN, INPUT); //reads pulse
 
+//bluetooth set up 
  tooth.begin(9600); //starts my bluetooth
-
 
 }
 
 void loop() {
   // put your main code here, to run repeatedly:
+
 
 for (int i = 0; i < 3; i++) {
         digitalWrite(RED_LED, LOW);
@@ -95,8 +99,8 @@ Serial.println(duration);
 float speed = 0.034;  //measured in cm/microseconds 
 float distance = speed * duration/2; // distance meaured in cm 
 
-Serial.print("Distance: "); 
-Serial.println(distance);
+Serial.println("Distance: "); 
+Serial.print(distance);
 delay(100); 
 
   if (distance > 6) {
@@ -154,22 +158,31 @@ delay(500);
 
   } 
 
-   if ((0 < distance < 6) {
+   if (0 < distance < 6) {
      for (int i = 0; i < 8; i++) {
       digitalWrite(GREEN_LED, HIGH);
       digitalWrite(YELLOW_LED, LOW);
       digitalWrite(RED_LED, LOW); 
       delay(100);
 
-      if (tooth.available() > 0) {
+  if (tooth.available() > 0) {
         davis = tooth.read();
         tooth.print("Input: ");
         tooth.println(davis);
       }
 
-      if (davis == "Platypus") {
-        Serial.println("Access Granted!"); 
-        delay(300);
+      if (davis == 'd') {
+        Serial.println("Hmmmmm i guess thats correct...."); 
+        while (!mfrc522.PICC_IsNewCardPresent() || !mfrc522.PICC_ReadCardSerial()) { // the || acts as an "or" so it's gonna wait until it reads a card. 
+        delay(100); // Slight delay, just give it some time 
+       } Serial.print("Card UID: ");
+       for (byte i = 0; i < mfrc522.uid.size; i++) {
+        Serial.print(mfrc522.uid.uidByte[i] < 0x10 ? " 0" : " ");
+        Serial.print(mfrc522.uid.uidByte[i], HEX);
+        //if the card matches special card Access granted
+        if (Luka_Card(mfrc522.uid.uidByte, SpecialCard)) {
+    Serial.println("Access Granted");
+
         TheServo.write(360);
         delay(300); 
         TheServo.write(390);
@@ -186,8 +199,15 @@ delay(500);
         delay(300); 
         TheServo.write(390);
         delay(300); 
+         }
+         else {Serial.println("Access Denied!");}
+         
+         mfrc522.PICC_HaltA();   // Halt PICC
+         delay(1000); // Pause before scanning again
+          } 
+        } 
       } 
-    } 
+    }
   }
 
 
