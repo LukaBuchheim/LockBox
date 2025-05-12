@@ -14,7 +14,6 @@ int const TX_PIN = A1; //sends signal
 
 //Servo 
 #include <Servo.h>
-#define MICHAEL_PIN 9
 Servo TheServo; 
 
 //RFID set up/libary set up 
@@ -32,8 +31,7 @@ bool Luka_Card(byte scannedCard[], byte SpecialCard[]) {
     }
   }
   return true;
-  }
-
+}
 //bluetooth set up 
 SoftwareSerial tooth(TX_PIN, RX_PIN); //make a bluetooth object 
 
@@ -55,7 +53,7 @@ void setup() {
 while (!Serial); // Do nothing if no serial port is opened (added for Arduinos based on ATMEGA32U4)
 
 //RFID set up 
-SPI.begin(); // Init SPI bus
+SPI.begin(); // Init SPI 
 mfrc522.PCD_Init(); // Init MFRC522
 
 //ultra sonic sensor set up 
@@ -84,8 +82,6 @@ for (int i = 0; i < 3; i++) {
     delay(250);                   
     }
 
-
-
 digitalWrite(TRIGGERPIN, LOW); //turning off first because we want a fresh start
 delayMicroseconds(2); //really fast turn it off then turn it on 
 digitalWrite(TRIGGERPIN, HIGH);
@@ -102,6 +98,8 @@ float distance = speed * duration/2; // distance meaured in cm
 Serial.println("Distance: "); 
 Serial.print(distance);
 delay(100); 
+
+//LED sequence
 
   if (distance > 6) {
     for (int i = 0; i < 10; i++) {
@@ -151,10 +149,17 @@ delay(100);
 
 
     }
-tone(BUZZER_PIN, 1000); 
+tone(BUZZER_PIN, 10); 
 delay(1000); 
 noTone(BUZZER_PIN);
-delay(500);   
+tone(BUZZER_PIN, 10); 
+delay(1000); 
+noTone(BUZZER_PIN);
+tone(BUZZER_PIN, 10); 
+delay(1000); 
+noTone(BUZZER_PIN);
+delay(500); 
+Serial.println("BOOM");
 
   } 
 
@@ -175,36 +180,26 @@ delay(500);
         Serial.println("Hmmmmm i guess thats correct...."); 
         while (!mfrc522.PICC_IsNewCardPresent() || !mfrc522.PICC_ReadCardSerial()) { // the || acts as an "or" so it's gonna wait until it reads a card. 
         delay(100); // Slight delay, just give it some time 
-       } Serial.print("Card UID: ");
-       for (byte i = 0; i < mfrc522.uid.size; i++) {
-        Serial.print(mfrc522.uid.uidByte[i] < 0x10 ? " 0" : " ");
-        Serial.print(mfrc522.uid.uidByte[i], HEX);
-        //if the card matches special card Access granted
+       } 
+       
+        //if the card matches Luka's card it's the special card, Access granted
         if (Luka_Card(mfrc522.uid.uidByte, SpecialCard)) {
-    Serial.println("Access Granted");
-
-        TheServo.write(360);
-        delay(300); 
-        TheServo.write(390);
-        delay(300); 
-        TheServo.write(450);
-        delay(300); 
-        TheServo.write(480);
-        delay(300); 
-        TheServo.write(520);
-        delay(1000); 
-        TheServo.write(450);
-        delay(300);
-        TheServo.write(420);
-        delay(300); 
-        TheServo.write(390);
-        delay(300); 
+        Serial.println("Access Granted");
+        TheServo.write(110);
+        delay(100);
+        TheServo.write(80);
+        delay(10000);
+         TheServo.write(360);
          }
-         else {Serial.println("Access Denied!");}
+         else {Serial.println("Access Denied!");
+         TheServo.write(360);
+  
+         }
          
          mfrc522.PICC_HaltA();   // Halt PICC
          delay(1000); // Pause before scanning again
-          } 
+         davis = '/0'; // clears bluetooth stuff, so basically clears the char 
+        return; //restarts loop 
         } 
       } 
     }
